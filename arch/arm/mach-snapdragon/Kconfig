@@ -1,5 +1,41 @@
 if ARCH_SNAPDRAGON
 
+config INFINITI_RAM_DIAGNOSTIC
+	bool "Local Infiniti RAM diagnostic layout"
+	depends on POSITION_INDEPENDENT && !SCSI && !UFS && !MMC
+	help
+	  Use a zero Image text offset and explicit non-overlapping BSS
+	  placement for the local LLVM-built Android RAM candidates.
+
+config INFINITI_FDT_CHECKPOINT
+	bool "Local Infiniti post-FDT reset checkpoint"
+	depends on INFINITI_RAM_DIAGNOSTIC
+	help
+	  Immediately request a PSCI reset after U-Boot has validated its
+	  initial device tree and memory map. Diagnostic only; never enable
+	  in a normal boot candidate.
+
+config INFINITI_BOARD_CHECKPOINT
+	bool "Local Infiniti post-relocation board reset checkpoint"
+	depends on INFINITI_RAM_DIAGNOSTIC && !INFINITI_FDT_CHECKPOINT
+	help
+	  Immediately request a PSCI reset from board_init(), after U-Boot
+	  relocation and driver-model initialization. Diagnostic only.
+
+config INFINITI_LATE_CHECKPOINT
+	bool "Local Infiniti post-console reset checkpoint"
+	depends on INFINITI_RAM_DIAGNOSTIC && !INFINITI_FDT_CHECKPOINT && !INFINITI_BOARD_CHECKPOINT
+	help
+	  Immediately request a PSCI reset after U-Boot console, environment,
+	  LMB, and board-late initialization. Diagnostic only.
+
+config INFINITI_RAM_PAYLOAD
+	bool "Embedded Infiniti diagnostic Linux payload (experimental)"
+	depends on !SCSI && !UFS && !MMC && !EFI_LOADER
+	help
+	  Local experimental RAM-only handoff. Build with generated payload
+	  filenames. No storage fallback. Not validated on physical hardware.
+
 config SYS_SOC
 	default "snapdragon"
 
@@ -24,6 +60,7 @@ config SYS_MALLOC_LEN
 	default 0x800000
 
 config LNX_KRNL_IMG_TEXT_OFFSET_BASE
+	default TEXT_BASE if INFINITI_RAM_DIAGNOSTIC
 	default 0x80000000
 
 config SYS_BOARD

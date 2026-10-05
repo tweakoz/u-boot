@@ -37,6 +37,10 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#if defined(CONFIG_INFINITI_FDT_CHECKPOINT) || defined(CONFIG_INFINITI_BOARD_CHECKPOINT)
+extern void infiniti_fdt_checkpoint_reset(void);
+#endif
+
 enum qcom_boot_source qcom_boot_source __section(".data") = 0;
 
 static struct mm_region rbx_mem_map[CONFIG_NR_DRAM_BANKS + 2] = { { 0 } };
@@ -260,6 +264,11 @@ int board_fdt_blob_setup(void **fdtp)
 
 	qcom_psci_fixup(*fdtp);
 
+#ifdef CONFIG_INFINITI_FDT_CHECKPOINT
+	/* The assembly helper needs no U-Boot console, timer or heap state. */
+	infiniti_fdt_checkpoint_reset();
+#endif
+
 	return ret;
 }
 
@@ -315,6 +324,9 @@ int board_init(void)
 {
 	show_psci_version();
 	qcom_board_init();
+#ifdef CONFIG_INFINITI_BOARD_CHECKPOINT
+	infiniti_fdt_checkpoint_reset();
+#endif
 	return 0;
 }
 
@@ -559,6 +571,9 @@ int board_late_init(void)
 		status |= !lmb_alloc(SZ_1M, &addr) ?
 			env_set_hex("fdtoverlay_addr_r", addr) : 1;
 	}
+
+	if (IS_ENABLED(CONFIG_INFINITI_RAM_PAYLOAD) && (status || fdt_status))
+		panic("Cannot reserve all Infiniti RAM payload buffers\n");
 
 	if (status || fdt_status)
 		log_warning("%s: Failed to set run time variables\n", __func__);

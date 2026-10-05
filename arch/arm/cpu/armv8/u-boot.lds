@@ -154,7 +154,13 @@ SECTIONS
 	/*
 	 * arch/arm/lib/crt0_64.S assumes __bss_start - __bss_end % 8 == 0
 	 */
+	/* LLD does not preserve the GNU OVERLAY address here. Keep BSS
+	 * after relocation records; it must never alias the live image. */
+#ifdef CONFIG_INFINITI_RAM_DIAGNOSTIC
+	.bss ALIGN(8) (NOLOAD) : {
+#else
 	.bss ADDR(.rela.dyn) (OVERLAY) : {
+#endif
 		__bss_start = .;
 		*(.bss*)
 		. = ALIGN(8);
