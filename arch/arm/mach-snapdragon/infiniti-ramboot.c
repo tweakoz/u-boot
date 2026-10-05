@@ -33,7 +33,7 @@ void qcom_late_init(void)
 	memcpy((void *)initrd, infiniti_initrd_start, rsize);
 	memcpy((void *)fdt, infiniti_fdt_start, fsize);
 	if (env_set_hex("infiniti_initrd_size", rsize) ||
-	    env_set("bootargs", "rdinit=/init ro efi=noruntime console=tty0 loglevel=4 quiet splash") ||
+	    env_set("bootargs", "rdinit=/init ro efi=noruntime console=tty0 loglevel=4 quiet splash oops=panic panic=5") ||
 	    env_set("bootcmd", "echo Starting experimental Arch RAM payload; "
 		"booti ${kernel_addr_r} ${ramdisk_addr_r}:${infiniti_initrd_size} ${fdt_addr_r}; "
 		"echo Linux handoff failed - no storage fallback"))
